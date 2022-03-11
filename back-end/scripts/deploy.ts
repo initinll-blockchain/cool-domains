@@ -1,30 +1,40 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `npx hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
+/* When using JavaScript, all the properties in the HRE are injected into the global scope, 
+and are also available by getting the HRE explicitly. When using TypeScript nothing will be 
+available in the global scope and you will need to import everything explicitly.
+https://hardhat.org/guides/typescript.html */
+
 import { ethers } from "hardhat";
 
-async function main() {
-  // Hardhat always runs the compile task when running scripts with its command
-  // line interface.
-  //
-  // If this script is run directly using `node` you may want to call compile
-  // manually to make sure everything is compiled
-  // await hre.run('compile');
+const main = async () => {
+  const domainContractFactory = await ethers.getContractFactory('Domains');
+  const domainContract = await domainContractFactory.deploy("ninja");
+  await domainContract.deployed();
 
-  // We get the contract to deploy
-  const Greeter = await ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  console.log("Contract deployed to:", domainContract.address);
 
-  await greeter.deployed();
+	let txn = await domainContract.register("apple",  {value: ethers.utils.parseEther('0.1')});
+	await txn.wait();
+  console.log("Minted domain apple.ninja");
 
-  console.log("Greeter deployed to:", greeter.address);
+  txn = await domainContract.setRecord("apple", "Am I a apple or a ninja??");
+  await txn.wait();
+  console.log("Set record for apple.ninja");
+
+  const address = await domainContract.getAddress("apple");
+  console.log("Owner of domain apple:", address);
+
+  const balance = await ethers.provider.getBalance(domainContract.address);
+  console.log("Contract balance:", ethers.utils.formatEther(balance));
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+const runMain = async () => {
+  try {
+    await main();
+    process.exit(0);
+  } catch (error) {
+    console.log(error);
+    process.exit(1);
+  }
+};
+
+runMain();
