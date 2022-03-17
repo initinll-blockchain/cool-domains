@@ -11,6 +11,8 @@ import "hardhat/console.sol";
 
 contract Domains is ERC721URIStorage {
 
+    address payable public owner;
+
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
@@ -23,7 +25,24 @@ contract Domains is ERC721URIStorage {
     mapping(string => address) public domains;
     mapping(string => string) public records;
 
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    function isOwner() public view returns(bool) {
+        return msg.sender == owner;
+    }
+
+    function withdraw() public onlyOwner {
+        uint amount = address(this).balance;
+
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Failed to withdraw Matic");
+    }
+
     constructor(string memory _topLevelDomain) payable ERC721("Ninja Name Service", "NNS") {
+        owner = payable(msg.sender);
         topLevelDomain = _topLevelDomain;
         console.log("%s name service deployed", _topLevelDomain);
     }
