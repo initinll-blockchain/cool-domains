@@ -1,27 +1,35 @@
 <script lang="ts">
 	import '../app.css';
 	import twitterLogo from '$lib/assets/twitter-logo.svg';
+	import polygonLogo from '$lib/assets/polygonlogo.png';
+	import ethLogo from '$lib/assets/ethlogo.png';
 
 	const TWITTER_HANDLE = '_buildspace';
 	const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 	
 	import { onMount } from 'svelte';
-	import { connectWallet, checkIfWalletIsConnected, mintDomain } from '$lib/services/CoolDomainService';
+	import { connectWallet, checkIfWalletIsConnected, mintDomain, getNetwork, onChainChanged, switchNetwork } from '$lib/services/CoolDomainService';
 
 	let account: string;
 	const topLevelDomain = '.ninja';
 
 	let domain: string;
 	let record: string;
+	let network: string;
 
 	onMount(async() => {
 		try {
 			account = await checkIfWalletIsConnected();
-			
+			network = await getNetwork();			
+			onChainChanged(handleChainChanged);		
 		} catch (error) {
 			console.log("OnMount Error", error);
 		}
 	});
+
+	function handleChainChanged(_chainId) {
+		window.location.reload();
+	}
 
 	async function mint(): Promise<void> {
 		try {
@@ -43,15 +51,27 @@
 					<p class="title">🐱‍👤 Ninja Name Service</p>
 					<p class="subtitle">Your immortal API on the blockchain!</p>
 				</div>
+				<div class="right">
+					<img alt="Network logo" class="logo" src={ network !== undefined && network.includes("Polygon") ? polygonLogo : ethLogo} />
+					{#if account}
+						<p> Wallet: {account.slice(0, 6)}...{account.slice(-4)} </p>
+					{:else}
+						<p> Not connected </p>
+					{/if}					
+				</div>
 			</header>
 		</div>
-		{#if !account}
+		{#if network !== undefined && network !== 'Polygon Mumbai Testnet'}
+			<div class="connect-wallet-container">
+				<p>Please connect to the Polygon Mumbai Testnet</p>
+				<button class='cta-button mint-button' on:click={switchNetwork}>Click here to switch</button>
+			</div>
+		{:else if !account}
 			<div class="connect-wallet-container">
 				<img src="https://media.giphy.com/media/3ohhwytHcusSCXXOUg/giphy.gif" alt="Ninja gif" />
 				<button onClick={connectWallet} class="cta-button connect-wallet-button"> Connect Wallet </button>
 			</div>
-		{/if}
-		{#if account}
+		{:else}
 			<div class="form-container">
 				<div class="first-row">
 					<input type="text" placeholder='domain' bind:value={domain}/>
@@ -67,7 +87,7 @@
 					</button>  
 				</div>
 			</div>
-		{/if}		
+		{/if}			
 		<div class="footer-container">
 			<img alt="Twitter Logo" class="twitter-logo" src={twitterLogo} />
 			<a class="footer-text" href={TWITTER_LINK} target="_blank" rel="noreferrer">{`built with @${TWITTER_HANDLE}`}</a>
