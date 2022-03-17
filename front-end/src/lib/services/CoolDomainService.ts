@@ -1,6 +1,7 @@
 import { Contract, ethers, Signer, type ContractInterface } from 'ethers';
 import abi from '$lib/abi/CoolDomain.json';
 import { Constants } from '$lib/helpers/Constants';
+import { networks } from '$lib/utils/networks';
 
 declare const window: any;
 
@@ -102,7 +103,81 @@ export async function mintDomain(domain: string, record:string): Promise<void> {
             return;
         }
     } catch (error) {
-        console.log("mintDomain error ", error);
+        throw error;
+    }
+}
+
+export async function getNetwork(): Promise<string> {
+    let network: string;
+
+    try {
+        const { ethereum } = window;
+
+        if (!ethereum) {
+            alert("Make sure you have metamask!");
+            return;
+        }
+
+        const chainId = await ethereum.request({ method: 'eth_chainId'});        
+        network = networks[chainId];
+    } catch (error) {
+        throw error;
+    }
+
+    return network;
+}
+
+export function onChainChanged(handleChainChanged: any){
+    try {
+        const { ethereum } = window;
+
+        if (!ethereum) {
+            alert("Make sure you have metamask!");
+            return;
+        }
+
+        ethereum.on('chainChanged', handleChainChanged);
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function switchNetwork(): Promise<void> {
+    try {
+        const { ethereum } = window;
+
+        if (ethereum) {
+            await ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x13881' }],
+            });
+        }
+        else {
+            alert('MetaMask is not installed. Please install it to use this app: https://metamask.io/download.html');
+        }
+    } catch (error) {
+        if (error.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                        {	
+                            chainId: '0x13881',
+                            chainName: 'Polygon Mumbai Testnet',
+                            rpcUrls: ['https://rpc-mumbai.maticvigil.com/'],
+                            nativeCurrency: {
+                                    name: "Mumbai Matic",
+                                    symbol: "MATIC",
+                                    decimals: 18
+                            },
+                            blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
+                        },
+                    ],
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        }
     }
 }
 
