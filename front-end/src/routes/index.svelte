@@ -6,7 +6,7 @@
 	const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 	
 	import { onMount } from 'svelte';
-	import { connectWallet, checkIfWalletIsConnected } from '$lib/services/CoolDomainService';
+	import { connectWallet, checkIfWalletIsConnected, mintDomain } from '$lib/services/CoolDomainService';
 
 	let account: string;
 	const topLevelDomain = '.ninja';
@@ -22,6 +22,16 @@
 			console.log("OnMount Error", error);
 		}
 	});
+
+	async function mint(): Promise<void> {
+		try {
+			const txn = await mintDomain(domain, record);
+			domain = '';
+			record = '';
+		} catch (error) {
+			console.log("mint error ", error);
+		}
+	}
 
 </script>
 
@@ -49,10 +59,10 @@
 				</div>
 				<input type="text" placeholder='whats ur ninja power' bind:value={record}/>
 				<div class="button-container">
-					<button class='cta-button mint-button' disabled={null} onClick={null}>
+					<button class='cta-button mint-button' disabled={null} on:click={mint}>
 						Mint
 					</button>  
-					<button class='cta-button mint-button' disabled={null} onClick={null}>
+					<button class='cta-button mint-button' disabled={null} on:click={null}>
 						Set data
 					</button>  
 				</div>
