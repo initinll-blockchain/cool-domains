@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Header from "$lib/components/Header.svelte";
+	import InputForm from "$lib/components/InputForm.svelte";
 
 	import '../app.css';
 	import twitterLogo from '$lib/assets/twitter-logo.svg';
 	import type { MintRecord } from '$lib/types/MintRecord';
-	import { connectWallet, checkIfWalletIsConnected, 
-		mintDomain, updateDomain, 
+	import { checkIfWalletIsConnected, 
 		getNetwork, onChainChanged, 
-		switchNetwork, fetchMints,
-		getContractAddress } from '$lib/services/CoolDomainService';
+		fetchMints, getContractAddress } from '$lib/services/CoolDomainService';
 
 	const TWITTER_HANDLE = '_buildspace';
 	const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -18,10 +17,8 @@
 	const topLevelDomain = '.ninja';
 
 	let domain: string;
-	let record: string;
 	let network: string;
 	let editing: boolean = false;
-	let loading: boolean = false;
 	let mints: MintRecord[];
 	let CONTRACT_ADDRESS:string;
 
@@ -44,29 +41,6 @@
 		window.location.reload();
 	}
 
-	async function mint(): Promise<void> {
-		try {
-			const txn = await mintDomain(domain, record);
-			domain = '';
-			record = '';
-			mints = await fetch();
-		} catch (error) {
-			console.log("mint error ", error);
-		}
-	}
-
-	async function update(): Promise<void> {
-		loading = true;
-		try {			
-			const txn = await updateDomain(domain, record);
-			domain = '';
-			record = '';
-		} catch (error) {
-			console.log("update error ", error);
-		}
-		loading = false;
-	}
-
 	async function fetch(): Promise<MintRecord[]> {	
 		let result:MintRecord[];
 		try {			
@@ -75,11 +49,6 @@
 			console.log("fetch error ", error);
 		}
 		return result;
-	}
-
-	function cancel() {
-		editing = false;
-		domain = '';
 	}
 
 	function editRecord(name: string) {
@@ -93,44 +62,8 @@
 <div class="App">
 	<div class="container">
 		<Header {account} {network} />
+		<InputForm {account} {network} />		
 		
-		{#if network !== undefined && network !== 'Polygon Mumbai Testnet'}
-			<div class="connect-wallet-container">
-				<p>Please connect to the Polygon Mumbai Testnet</p>
-				<button class='cta-button mint-button' on:click={switchNetwork}>Click here to switch</button>
-			</div>
-		{:else if !account}
-			<div class="connect-wallet-container">
-				<img src="https://media.giphy.com/media/3ohhwytHcusSCXXOUg/giphy.gif" alt="Ninja gif" />
-				<button onClick={connectWallet} class="cta-button connect-wallet-button"> Connect Wallet </button>
-			</div>
-		{:else}
-			<div class="form-container">
-				<div class="first-row">
-					<input type="text" placeholder='domain' bind:value={domain}/>
-					<p class='tld'> {topLevelDomain} </p>
-				</div>
-				<input type="text" placeholder='whats ur ninja power' bind:value={record}/>
-				{#if editing}
-					<div class="button-container">
-						<!-- This will call the updateDomain function we just made -->
-						<button class='cta-button mint-button' disabled={loading} on:click={update}>
-							Set record
-						</button>  
-						<!-- This will let us get out of editing mode by setting editing to false -->
-						<button class='cta-button mint-button' on:click={cancel}>
-							Cancel
-						</button>  
-					</div>
-				{:else}
-					<div class="button-container">
-						<button class='cta-button mint-button' disabled={loading} on:click={mint}>
-							Mint
-						</button>  
-					</div>
-				{/if}				
-			</div>
-		{/if}	
 		{#if account && mints && mints.length > 0}
 			<div class="mint-container">
 				<p class="subtitle"> Recently minted domains!</p>
