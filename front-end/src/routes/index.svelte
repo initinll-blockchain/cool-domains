@@ -2,16 +2,14 @@
 	import { onMount } from 'svelte';
 	import Header from "$lib/components/Header.svelte";
 	import InputForm from "$lib/components/InputForm.svelte";
+	import Footer from "$lib/components/Footer.svelte";
 
 	import '../app.css';
-	import twitterLogo from '$lib/assets/twitter-logo.svg';
+	
 	import type { MintRecord } from '$lib/types/MintRecord';
 	import { checkIfWalletIsConnected, 
 		getNetwork, onChainChanged, 
-		fetchMints, getContractAddress } from '$lib/services/CoolDomainService';
-
-	const TWITTER_HANDLE = '_buildspace';
-	const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
+		fetchMints, getContractAddress } from '$lib/services/CoolDomainService';	
 
 	let account: string;
 	const topLevelDomain = '.ninja';
@@ -85,9 +83,6 @@
 				</div>
 			</div>		
 		{/if}
-		<div class="footer-container">
-			<img alt="Twitter Logo" class="twitter-logo" src={twitterLogo} />
-			<a class="footer-text" href={TWITTER_LINK} target="_blank" rel="noreferrer">{`built with @${TWITTER_HANDLE}`}</a>
-		</div>
+		<Footer />
 	</div>
 </div>
