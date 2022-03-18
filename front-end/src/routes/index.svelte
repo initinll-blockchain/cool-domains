@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import Header from "$lib/components/Header.svelte";
 
 	import '../app.css';
 	import twitterLogo from '$lib/assets/twitter-logo.svg';
-	import polygonLogo from '$lib/assets/polygonlogo.png';
-	import ethLogo from '$lib/assets/ethlogo.png';
 	import type { MintRecord } from '$lib/types/MintRecord';
 	import { connectWallet, checkIfWalletIsConnected, 
 		mintDomain, updateDomain, 
@@ -93,22 +92,8 @@
 
 <div class="App">
 	<div class="container">
-		<div class="header-container">
-			<header>
-				<div class="left">
-					<p class="title">🐱‍👤 Ninja Name Service</p>
-					<p class="subtitle">Your immortal API on the blockchain!</p>
-				</div>
-				<div class="right">
-					<img alt="Network logo" class="logo" src={ network !== undefined && network.includes("Polygon") ? polygonLogo : ethLogo} />
-					{#if account}
-						<p> Wallet: {account.slice(0, 6)}...{account.slice(-4)} </p>
-					{:else}
-						<p> Not connected </p>
-					{/if}					
-				</div>
-			</header>
-		</div>
+		<Header {account} {network} />
+		
 		{#if network !== undefined && network !== 'Polygon Mumbai Testnet'}
 			<div class="connect-wallet-container">
 				<p>Please connect to the Polygon Mumbai Testnet</p>
