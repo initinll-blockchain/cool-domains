@@ -1,6 +1,6 @@
 export interface MintRecord {
     id:number,
     name:string,
-    record: any,
+    record: string,
     owner:string
 }

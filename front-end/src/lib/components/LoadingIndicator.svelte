@@ -1,9 +1,26 @@
-<div class="lds-ring">
-	<div />
-	<div />
-	<div />
-	<div />
-</div>
+<script lang="ts">
+	import { onDestroy } from 'svelte'; 
+	import { LoadingStore } from '$lib/stores/StateStore';
+
+	let loading: boolean = false;
+
+	const unsub = LoadingStore.subscribe((l) => {        
+        loading = l;
+    });
+
+	onDestroy(() => {
+        unsub();
+    });
+</script>
+
+{#if loading}
+	<div class="lds-ring">
+		<div />
+		<div />
+		<div />
+		<div />
+	</div>
+{/if}
 
 <style>
 	/* Code found on https://loading.io/css/ */
