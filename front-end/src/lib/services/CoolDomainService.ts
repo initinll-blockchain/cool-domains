@@ -2,6 +2,7 @@ import { Contract, ethers, Signer, type ContractInterface } from 'ethers';
 import abi from '$lib/abi/CoolDomain.json';
 import { Constants } from '$lib/helpers/Constants';
 import { networks } from '$lib/utils/networks';
+import type { MintRecord } from '$lib/types/MintRecord';
 
 declare const window: any;
 
@@ -105,6 +106,76 @@ export async function mintDomain(domain: string, record:string): Promise<void> {
     } catch (error) {
         throw error;
     }
+}
+
+export async function updateDomain(domain: string, record: string): Promise<void> {
+    if (!domain || !record) {
+        return;
+    }
+    console.log("Updating domain", domain, "with record", record);
+
+    try {
+        const { ethereum } = window;
+
+        if (ethereum) {
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const contractAddress: string = getContractAddress();
+            const contract = new ethers.Contract(contractAddress, abi.abi, signer);
+
+            let txn = await contract.setRecord(domain, record);
+            await txn.wait();
+
+			console.log(`Record set https://mumbai.polygonscan.com/tx/${txn.hash}`);
+        }
+        else {
+            alert("Make sure you have metamask!");
+            return;
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function fetchMints(): Promise<MintRecord[]> { 
+    let mintRecords:MintRecord[];   
+
+    try {
+        const { ethereum } = window;
+
+        if (ethereum) {
+            const provider = new ethers.providers.Web3Provider(ethereum);
+            const signer = provider.getSigner();
+            const contractAddress: string = getContractAddress();
+            const contract = new ethers.Contract(contractAddress, abi.abi, signer);
+
+            const names:string[] = await contract.getAllNames();
+
+            const promises = names.map(async function(name) {
+                const record:string = await contract.records(name);
+                const owner:string = await contract.domains(name);
+
+                const mintRecord: MintRecord = {
+                    id: names.indexOf(name),
+                    name: name,
+                    record: record,
+                    owner: owner
+                };
+                return mintRecord;
+            });
+
+            mintRecords = await Promise.all(promises);
+            console.log("MINTS FETCHED ", mintRecords);
+        }
+        else {
+            alert("Make sure you have metamask!");
+            return;
+        }
+    } catch (error) {
+        throw error;
+    }
+    
+    return mintRecords;
 }
 
 export async function getNetwork(): Promise<string> {
