@@ -7,7 +7,7 @@ import type { MintRecord } from '$lib/types/MintRecord';
 declare const window: any;
 
 export function getContractAddress() {    
-    return Constants.CONTRACT_ADDRESS_LOCALHOST;
+    return Constants.CONTRACT_ADDRESS_POLYGONTESTNET;
 }
 
 export async function checkIfWalletIsConnected(): Promise<string> {
